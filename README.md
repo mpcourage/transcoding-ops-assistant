@@ -10,7 +10,7 @@ runbook rather than inventing troubleshooting steps.
 operator question
       │
       ▼
- assistant.py  ── Claude tool-use loop (claude-sonnet-4-5)
+ assistant.py  ── Claude tool-use loop (claude-sonnet-5)
       │
       ├─ get_job_status / list_jobs ──► mock_api.py   (job-status API)
       │

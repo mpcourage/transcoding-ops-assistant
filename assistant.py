@@ -11,7 +11,7 @@ import anthropic
 
 from tools import TOOL_SCHEMAS, dispatch
 
-MODEL = "claude-sonnet-4-5"
+MODEL = "claude-sonnet-5"
 
 SYSTEM_PROMPT = """\
 You are an operations assistant for a video transcoding pipeline. You help \
