@@ -56,34 +56,38 @@ def run_conversation_evals() -> tuple[int, int]:
         messages = [{"role": "user", "content": sc["question"]}]
         tools_called = []
 
-        # inline loop so we can observe which tools were called
-        while True:
-            response = client.messages.create(
-                model=MODEL,
-                max_tokens=1024,
-                tools=TOOL_SCHEMAS,
-                messages=messages,
-            )
-            if response.stop_reason != "tool_use":
-                final_text = "".join(
-                    b.text for b in response.content if b.type == "text"
+        try:
+            # inline loop so we can observe which tools were called
+            while True:
+                response = client.messages.create(
+                    model=MODEL,
+                    max_tokens=1024,
+                    tools=TOOL_SCHEMAS,
+                    messages=messages,
                 )
-                break
-            messages.append({"role": "assistant", "content": response.content})
-            tool_results = []
-            for block in response.content:
-                if block.type != "tool_use":
-                    continue
-                tools_called.append(block.name)
-                result = dispatch(block.name, block.input)
-                tool_results.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": str(result),
-                    }
-                )
-            messages.append({"role": "user", "content": tool_results})
+                if response.stop_reason != "tool_use":
+                    final_text = "".join(
+                        b.text for b in response.content if b.type == "text"
+                    )
+                    break
+                messages.append({"role": "assistant", "content": response.content})
+                tool_results = []
+                for block in response.content:
+                    if block.type != "tool_use":
+                        continue
+                    tools_called.append(block.name)
+                    result = dispatch(block.name, block.input)
+                    tool_results.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": str(result),
+                        }
+                    )
+                messages.append({"role": "user", "content": tool_results})
+        except anthropic.APIError as e:
+            print(f"[ERROR] {sc['name']}: {type(e).__name__}: {e}")
+            continue
 
         expects_tool = sc["expects_tool"]
         tool_ok = expects_tool in tools_called if expects_tool else not tools_called
